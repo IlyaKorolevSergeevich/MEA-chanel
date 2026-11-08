@@ -1,37 +1,36 @@
-* Full Chopper Test: Signal vs 1/f Noise (Corrected)
 .lib /home/elliotx/pdk/share/pdk/sky130A/libs.tech/ngspice/sky130.lib.spice tt
 
-* 1. ПОЛЕЗНЫЙ СИГНАЛ (100 Гц, 1 мВ)
+* 1. USEFUL SIGNAL (100 Гц, 1 mV)
 VIN_P in_p 0 SIN(0.9 1m 100)
 VIN_N in_n 0 SIN(0.9 -1m 100)
 
-* 2. ТАКТОВЫЕ СИГНАЛЫ (200 кГц)
+* 2. CLOCK (200 kHz)
 VCLK clk 0 PULSE(0 1.8 0 1n 1n 2.5u 5u)
 VCLK_INV clk_inv 0 PULSE(1.8 0 0 1n 1n 2.5u 5u)
 
-* 3. ВХОДНОЙ ЧОППЕР
+* 3. CHOPPER INPUT
 .model SW SW(Ron=10 Roff=10Meg Vt=0.9 Vh=0)
 S1 in_p amp_in_p clk 0 SW
 S2 in_n amp_in_p clk_inv 0 SW
 S3 in_p amp_in_n clk_inv 0 SW
 S4 in_n amp_in_n clk 0 SW
 
-* 4. ШУМ УСИЛИТЕЛЯ (100 Гц, 5 мВ)
+* 4. AMPLIFIER NOISE (100 Hz, 5 mV)
 VNOISE_P noise_p 0 SIN(0 5m 100)
 VNOISE_N noise_n 0 SIN(0 -5m 100)
 E_amp_in_p amp_in_p_noisy 0 amp_in_p noise_p 1
 E_amp_in_n amp_in_n_noisy 0 amp_in_n noise_n 1
 
-* 5. УСИЛИТЕЛЬ (Усиление x100)
+* 5. AMPLIFIER (x100)
 EAMP amp_out_p amp_out_n amp_in_p_noisy amp_in_n_noisy 100
 
-* 6. ВЫХОДНОЙ ЧОППЕР
+* 6. CHOPPER OUTPUT
 S5 amp_out_p out_p clk 0 SW
 S6 amp_out_n out_p clk_inv 0 SW
 S7 amp_out_p out_n clk_inv 0 SW
 S8 amp_out_n out_n clk 0 SW
 
-* 7. LPF 2-ГО ПОРЯДКА (Два каскада RC, чтобы лучше давить 200 кГц)
+* 7. LPF 2-nd ORDER (two RC capacitors to improve the pressure at 200 kHz)
 R1 out_p lpf1_p 10k
 C1 lpf1_p 0 265p
 R2 lpf1_p lpf2_p 10k
@@ -42,13 +41,13 @@ C3 lpf1_n 0 265p
 R4 lpf1_n lpf2_n 10k
 C4 lpf2_n 0 265p
 
-* Разностный выходной сигнал
+* DIFFERENTIAL OUTPUT SIGNAL
 B_DIFF diff 0 V = V(lpf2_p) - V(lpf2_n)
 
 .control
-* 30 мс = 3 периода сигнала 100 Гц
+* 30 ms = 3 periods of signal 100 Hz
 tran 0.1u 30m
-* Измеряем размах на установившемся участке (с 10 мс до 25 мс)
+*THE MEASURE THE RANGE IN A STEADY STATE (from 10 ms to 25 ms)
 meas tran v_out_pp pp v(diff) from=10m to=25m
 plot v(diff)
 .endc
