@@ -1,25 +1,24 @@
-* Real Chopper Switch Test with Auto-Measurement
 .lib /home/elliotx/pdk/share/pdk/sky130A/libs.tech/ngspice/sky130.lib.spice tt
 
-* ВХОД
+* INPUT
 VIN in 0 0.9
 
-* ТАКТЫ (200 кГц)
+* TACTS (200 kHz)
 VCLK clk 0 pulse(0 1.8 1u 1n 1n 2.5u 5u)
 VCLKD clkd 0 pulse(1.8 0 1u 1n 1n 2.5u 5u)
 
-* ОСНОВНОЙ КЛЮЧ (без компенсации)
+* MAIN KEY
 XSW in clk out 0 sky130_fd_pr__nfet_01v8 W=1 L=0.15 nf=1
 Cout out 0 1p
 
-* СХЕМА С КОМПЕНСАЦИЕЙ (Dummy Switch)
+* SCHEM WITH COMPENSATION (Dummy Switch)
 XDUM in clkd out_dummy 0 sky130_fd_pr__nfet_01v8 W=0.5 L=0.15 nf=1
 XSW2 in clk out_dummy 0 sky130_fd_pr__nfet_01v8 W=1 L=0.15 nf=1
 Cout_dummy out_dummy 0 1p
 
 .control
 tran 1n 8u
-* Измеряем напряжение за 0.1 мкс ДО выключения (3.4 мкс) и ПОСЛЕ (3.6 мкс)
+* THE MEASURE THE VOLTAGE FOR 0.1 mcs BEFORE SWITCHING OFF (3.4 mcs) AND AFTER (3.6 mcs)
 meas tran v_out_before find v(out) at=3.4u
 meas tran v_out_after find v(out) at=3.6u
 meas tran v_dummy_before find v(out_dummy) at=3.4u
