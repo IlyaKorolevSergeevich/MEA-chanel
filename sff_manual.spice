@@ -1,0 +1,41 @@
+* Full Channel: Electrode + SF + LPF + PGA
+.lib /home/elliotx/pdk/share/pdk/sky130A/libs.tech/ngspice/sky130.lib.spice tt
+
+* 1. МОДЕЛЬ ЭЛЕКТРОДА (Rct = 400k, Cdl = 180p)
+VIN elec 0 0.8 ac 1
+Relec elec net1 1k
+Rct net1 0 400k
+Cdl net1 0 180p
+
+* 2. ИСТОЧНИКИ ПИТАНИЯ И СМЕЩЕНИЯ
+VDD_SRC VDD 0 1.8
+IB 0 nb 20u
+.nodeset v(vout)=0.9
+
+* 3. SOURCE FOLLOWER (SF)
+XM1 VDD net1 vout 0 sky130_fd_pr__nfet_01v8 W=50 L=1 nf=1
+XM2 vout nb 0 0 sky130_fd_pr__nfet_01v8 W=50 L=1 nf=1
+XM3 nb nb 0 0 sky130_fd_pr__nfet_01v8 W=50 L=1 nf=1
+
+* 4. LPF (Пассивный RC-фильтр, fc = 60 кГц)
+R1 vout vout_lpf 10k
+C1 vout_lpf 0 265p
+
+* 5. PGA (Идеальный усилитель x100)
+E1 vout_pga 0 vout_lpf 0 100
+
+* АНАЛИЗ ШУМА
+.noise v(vout_pga) VIN dec 10 0.3 5k
+
+.control
+op
+print v(vout) v(vout_lpf) v(vout_pga)
+run
+setplot noise1
+plot inoise_spectrum
+let sq = inoise_spectrum * inoise_spectrum
+let total = sqrt(integ(sq))
+print total
+.endc
+
+.end
